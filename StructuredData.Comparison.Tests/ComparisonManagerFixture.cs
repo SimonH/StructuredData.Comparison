@@ -79,23 +79,23 @@ namespace StructuredData.Comparison.Tests
         public void ThrowsIfEitherFileDoesNotExist()
         {
             var manager = CreateSut();
-            Assert.That(() => manager.Compare("source.ext", "exists.ext"), Throws.TypeOf<FileComparisonException>());
-            Assert.That(() => manager.Compare("exists.ext", "result.ext"), Throws.TypeOf<FileComparisonException>());
+            Assert.That(() => manager.Compare("source.ext", "exists.ext"), Throws.TypeOf<DataComparisonException>());
+            Assert.That(() => manager.Compare("exists.ext", "result.ext"), Throws.TypeOf<DataComparisonException>());
         }
 
         [Test]
         public void ThrowsIfMimeTypesCannotBeFound()
         {
             var manager = CreateSut();
-            Assert.That(() => manager.Compare("exists.unk", "exists.ext"), Throws.TypeOf<FileComparisonException>());
-            Assert.That(() => manager.Compare("exists.ext", "exists.unk"), Throws.TypeOf<FileComparisonException>());
+            Assert.That(() => manager.Compare("exists.unk", "exists.ext"), Throws.TypeOf<DataComparisonException>());
+            Assert.That(() => manager.Compare("exists.ext", "exists.unk"), Throws.TypeOf<DataComparisonException>());
         }
 
         [Test]
         public void ThrowsIfMimeTypesDoNotMatch()
         {
             var manager = CreateSut();
-            Assert.That(() => manager.Compare("exists.ext", "exists.ent"), Throws.TypeOf<FileComparisonException>());
+            Assert.That(() => manager.Compare("exists.ext", "exists.ent"), Throws.TypeOf<DataComparisonException>());
         }
 
         [Test]

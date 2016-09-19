@@ -7,14 +7,14 @@ using StructuredData.Comparison.Model;
 
 namespace StructuredData.Comparison
 {
-    public class DefaultPatchConverter : IConvertPatchElements
+    public class DefaultXmlSerializerPatchConverter : IConvertPatchElements
     {
         public string DescribePatch(IEnumerable<IPatchElement> differences)
         {
-            var list = differences.ToList();
+            var list = differences.Select(pe => pe as PatchElement).ToList();
             using(var writer = new StringWriter())
             {
-                new XmlSerializer(typeof(PatchElement)).Serialize(writer, list);
+                new XmlSerializer(typeof(List<PatchElement>)).Serialize(writer, list);
                 return writer.ToString();
             }
         }
