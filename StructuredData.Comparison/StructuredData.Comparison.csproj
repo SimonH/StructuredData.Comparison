@@ -60,13 +60,17 @@
     <Compile Include="Model\PatchElement.cs" />
     <Compile Include="Model\StructuredDataNode.cs" />
     <Compile Include="Processors\IgnoreValueProcessorCommand.cs" />
-    <Compile Include="Processors\StructuredDataNodeExtensions.cs" />
+    <Compile Include="Model\StructuredDataNodeExtensions.cs" />
     <Compile Include="Processors\ValueProcessorCommandRunner.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ComparisonManager.cs" />
-    <Compile Include="Settings\ValueProcessorDeclarations.cs" />
+    <Compile Include="Settings\ListOptions.cs" />
+    <Compile Include="Settings\ProcessorDeclarations.cs" />
+    <Compile Include="Settings\ComparisonSettings.cs" />
+    <Compile Include="Settings\SettingsExtensions.cs" />
     <Compile Include="StructuredDataComparer.cs" />
     <Compile Include="StructuredDataComparison.cs" />
+    <Compile Include="WalkProcesses.cs" />
     <Compile Include="Wrappers\FileSystemWrapper.cs" />
   </ItemGroup>
   <ItemGroup>

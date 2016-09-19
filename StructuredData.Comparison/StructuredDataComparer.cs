@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using StructuredData.Comparison.Exceptions;
 using StructuredData.Comparison.Interfaces;
 using StructuredData.Comparison.Model;
 using StructuredData.Comparison.Processors;
+using StructuredData.Comparison.Settings;
 
 namespace StructuredData.Comparison
 {
@@ -13,10 +16,11 @@ namespace StructuredData.Comparison
     internal class StructuredDataComparer : IStructuredDataComparer
     {
         private IEnumerable<Lazy<ICreateStructuredDataWalkers, IFileMimeType>> _walkerFactories;
-        private IEnumerable<Lazy<IConvertPatchElements, IFileMimeType>> _patchConverters; 
+        private IEnumerable<Lazy<IConvertPatchElements, IFileMimeType>> _patchConverters;
 
         [ImportingConstructor]
-        public StructuredDataComparer([ImportMany] IEnumerable<Lazy<ICreateStructuredDataWalkers, IFileMimeType>> walkerFactories,
+        public StructuredDataComparer(
+            [ImportMany] IEnumerable<Lazy<ICreateStructuredDataWalkers, IFileMimeType>> walkerFactories,
             [ImportMany] IEnumerable<Lazy<IConvertPatchElements, IFileMimeType>> patchConverters)
         {
             _walkerFactories = walkerFactories;
@@ -24,14 +28,19 @@ namespace StructuredData.Comparison
 
         public string Compare(string sourceData, string resultDeclarationData, string mimeType)
         {
-            var walkerFactory = _walkerFactories.FirstOrDefault(lwf => string.Equals(lwf.Metadata.MimeType, mimeType, StringComparison.CurrentCultureIgnoreCase))?.Value;
-            if(walkerFactory == null)
+            var walkerFactory =
+                _walkerFactories.FirstOrDefault(
+                        lwf => string.Equals(lwf.Metadata.MimeType, mimeType, StringComparison.CurrentCultureIgnoreCase))?
+                    .Value;
+            if (walkerFactory == null)
             {
-                throw new DataComparisonException($"Could not locate an ICreateStructuredDataWalkers for mime type : {mimeType}");
+                throw new DataComparisonException(
+                    $"Could not locate an ICreateStructuredDataWalkers for mime type : {mimeType}");
             }
             var sourceWalker = walkerFactory.CreateWalker(sourceData);
             var resultWalker = walkerFactory.CreateWalker(resultDeclarationData);
-            var differences = Walk(sourceWalker, resultWalker).ToList(); // to list here to prevent multiple enumerations
+            var settingsScope = new Stack<ComparisonSettings>(new List<ComparisonSettings> { new ComparisonSettings() });
+            var differences = Walk(sourceWalker, resultWalker, settingsScope).ToList(); // to list here to prevent multiple enumerations
             return !differences.Any() ? null : CreatePatch(differences, mimeType);
         }
 
@@ -40,105 +49,79 @@ namespace StructuredData.Comparison
             var converter = _patchConverters?.FirstOrDefault(pc => string.Equals(pc.Metadata.MimeType, mimeType, StringComparison.InvariantCultureIgnoreCase))?.Value ?? new DefaultXmlSerializerPatchConverter();
             return converter.DescribePatch(differences);
         }
-        
-        private IEnumerable<IPatchElement> Walk(IEnumerable<IStructuredDataNode> sourceWalker, IEnumerable<IStructuredDataNode> resultWalker)
+
+        public static IEnumerable<IPatchElement> Walk(IEnumerable<IStructuredDataNode> sourceWalker,
+            IEnumerable<IStructuredDataNode> resultWalker, Stack<ComparisonSettings> settingsScope)
         {
-            if (sourceWalker == null)
+            var patchList = new List<PatchElement>();
+            if(!WalkProcesses.CheckForNulls(sourceWalker, resultWalker, patchList))
             {
-                var node = resultWalker?.FirstOrDefault();
-                if (node != null)
+                foreach(var patch in patchList)
                 {
-                    yield return new PatchElement {Operation = "Add", Path = node.Path, Value = node.IsValue ? node.Value : null };
+                    yield return patch;
                 }
                 yield break;
             }
-            if (resultWalker == null)
+            var scopeDepth = settingsScope.Count;
+            try
             {
-                var node = sourceWalker.FirstOrDefault();
-                if (node != null)
+                using(var resultEnumerator = resultWalker.GetEnumerator())
                 {
-                    yield return new PatchElement { Operation = "Remove", Path = node.Path };
-                }
-                yield break;
-            }
-            using (var resultEnumerator = resultWalker.GetEnumerator())
-            {
-                // we should also start by checking that neither enumerator is empty (i.e. no foreach on results but GetEnumerator() and MoveNext() on each and see if it's true
-                using (var sourceEnumerator = sourceWalker.GetEnumerator())
-                {
-                    while (true)
+                    // we should also start by checking that neither enumerator is empty (i.e. no foreach on results but GetEnumerator() and MoveNext() on each and see if it's true
+                    using(var sourceEnumerator = sourceWalker.GetEnumerator())
                     {
-                        IStructuredDataNode resultNode = null;
-                        IStructuredDataNode sourceNode = null;
-                        var resultMoved = resultEnumerator.MoveNext();
-                        var sourceMoved = sourceEnumerator.MoveNext();
-                        if (resultMoved != sourceMoved)
+                        while(true)
                         {
-                            if (resultMoved)
+                            patchList.Clear();
+                            var tuple = WalkProcesses.MoveNext(sourceEnumerator, resultEnumerator, settingsScope, patchList);
+                            if(tuple == null)
                             {
-                                yield return new PatchElement { Operation = "Add", Path = resultEnumerator.Current.Path, Value = resultEnumerator.Current.IsValue ? resultEnumerator.Current.Value : null };
-                            }
-                            else
-                            {
-                                yield return new PatchElement { Operation = "Remove", Path = sourceEnumerator.Current.Path };
-                            }
-                            break;
-                        }
-                        if (!resultMoved)
-                        {
-                            break;
-                        }
-                        resultNode = resultEnumerator.Current;
-                        sourceNode = sourceEnumerator.Current;
-                        IEnumerable<IPatchElement> commandPatches;
-                        if (resultNode.RunValueProcessorCommand(sourceNode, out commandPatches))
-                        {
-                            foreach (var commandPatch in commandPatches)
-                            {
-                                yield return commandPatch;
-                            }
-                            continue;
-                        }
-                        if (!sourceNode.IsValue)
-                        {
-                            if (!resultNode.IsValue)
-                            {
-                                foreach (var patch in Walk(sourceNode.Children, resultNode.Children))
+                                foreach(var patch in patchList)
                                 {
                                     yield return patch;
                                 }
-                                continue;
+                                break;
                             }
-                            if (resultNode.IsValue)
+                            var sourceNode = tuple.Item1;
+                            var resultNode = tuple.Item2;
+                            if(settingsScope.Count == scopeDepth && (!settingsScope.Peek().Inherit || resultNode.IsListNode()))
                             {
-                                foreach (var child in sourceNode.Children)
+                                var lastInherited = settingsScope.LastInheritedSettings();
+                                settingsScope.Push(!settingsScope.Peek().Inherit
+                                    ? lastInherited
+                                    : new ComparisonSettings
+                                    {
+                                        TreatAsList = true,
+                                        Inherit = false,
+                                        ListOptions = lastInherited.ListOptions
+                                    });
+                            }
+                            IEnumerable<IPatchElement> commandPatches;
+                            if(resultNode.RunValueProcessorCommand(sourceNode, out commandPatches))
+                            {
+                                foreach(var commandPatch in commandPatches)
                                 {
-                                    yield return new PatchElement {Operation = "Remove", Path = child.Path};
+                                    yield return commandPatch;
                                 }
-                                yield return new PatchElement { Operation = "Add", Path = resultNode.Path, Value = resultNode.Value };
                                 continue;
                             }
-                        }
-                        if (!resultNode.IsValue)
-                        {
-                            yield return new PatchElement {Operation = "Add", Path = resultNode.Path};
-                            yield return new PatchElement {Operation = "Remove", Path = sourceNode.Path};
-                            continue;
-                        }
-                        if (
-                            !string.Equals(sourceNode.Name, resultNode.Name,
-                                StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            yield return new PatchElement { Operation = "Remove", Path = sourceNode.Path, Value = sourceNode.Value };
-                            yield return new PatchElement { Operation = "Add", Path = resultNode.Path, Value = resultNode.Value };
-                        }
-                        else if (!string.Equals(sourceNode.Value, resultNode.Value))
-                        {
-                            yield return new PatchElement { Operation = "Replace", Path = sourceNode.Path, Value = resultNode.Value };
+                            var handleFunc = settingsScope.Peek().TreatAsList ? new Func<IStructuredDataNode, IStructuredDataNode, Stack<ComparisonSettings>, IEnumerable<IPatchElement>>(WalkProcesses.HandleLists) : WalkProcesses.HandleNodes;
+                            foreach(var patch in handleFunc(sourceNode, resultNode, settingsScope))
+                            {
+                                yield return patch;
+                            }
                         }
                     }
                 }
             }
+            finally
+            {
+                if(settingsScope.Count > scopeDepth)
+                {
+                    settingsScope.Pop();
+                }
+            }
+            
         }
     }
 }
