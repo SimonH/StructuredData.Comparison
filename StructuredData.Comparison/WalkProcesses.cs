@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using StructuredData.Comparison.Exceptions;
 using StructuredData.Comparison.Interfaces;
 using StructuredData.Comparison.Model;
 using StructuredData.Comparison.Processors;
@@ -36,13 +37,18 @@ namespace StructuredData.Comparison
         public static Tuple<IStructuredDataNode, IStructuredDataNode> MoveNext(IEnumerator<IStructuredDataNode> sourceEnumerator, IEnumerator<IStructuredDataNode> resultEnumerator, Stack<ComparisonSettings> settingsScope, List<PatchElement> patchList)
         {
             var resultMoved = resultEnumerator.MoveNext();
-            if(resultMoved && resultEnumerator.Current.IsSettingsNode())
+            // process the settings when on the parent node
+            if (resultMoved && resultEnumerator.Current.HasSettingsNode())
             {
                 var retrievedSettings = resultEnumerator.Current.GetSettingsObject();
-                if(retrievedSettings != null)
+                if (retrievedSettings != null)
                 {
                     settingsScope.Push(retrievedSettings);
                 }
+            }
+            // skip over any actual settings that we hit here
+            if (resultMoved && resultEnumerator.Current.IsSettingsNode())
+            {
                 resultMoved = resultEnumerator.MoveNext();
             }
             var sourceMoved = sourceEnumerator.MoveNext();
@@ -65,9 +71,59 @@ namespace StructuredData.Comparison
             return new Tuple<IStructuredDataNode, IStructuredDataNode>(sourceEnumerator.Current, resultEnumerator.Current);
         }
 
-        public static IEnumerable<IPatchElement> HandleLists(IStructuredDataNode sourceNode, IStructuredDataNode resultNode, Stack<ComparisonSettings> settingsNode)
+        public static IEnumerable<IPatchElement> HandleLists(IStructuredDataNode sourceNode, IStructuredDataNode resultNode, Stack<ComparisonSettings> settingsScope)
         {
-            throw new NotImplementedException();
+            var isStrict = (settingsScope.Peek().ListOptions & ListOptions.Strict) == ListOptions.Strict;
+            var isOrdered = (settingsScope.Peek().ListOptions & ListOptions.Ordered) == ListOptions.Ordered;
+            var resultList = resultNode.Children.Where(sdn => !string.Equals(sdn.Name, ProcessorDeclarations.Settings)).ToList();
+            var sourceList = sourceNode.Children.ToList();
+            if (resultList.Count == 0)
+            {
+                if (sourceList.Count > 0 && isStrict)
+                {
+                    foreach (var node in sourceList)
+                    {
+                        yield return new PatchElement { Operation = "Remove", Path = node.Path };
+                    }
+                }
+                yield break;
+            }
+            var keyField = settingsScope.Peek().ListKey ?? resultList[0].Children?.FirstOrDefault()?.Name;
+            if (string.IsNullOrWhiteSpace(keyField))
+            {
+                throw new DataComparisonException("Cannot handle an unordered list without a key field. Set ListKey in settings or the first child node is used");
+            }
+            // we expect to find each result item and for them to be equal it's just where we find them in the source that's different
+            var listLocator = isOrdered ? (IListLocator)new OrderedListLocator(sourceList, keyField) : new UnOrderedListLocator(sourceList, keyField);
+            List<IStructuredDataNode> foundNodes = new List<IStructuredDataNode>();
+            foreach (var result in resultList)
+            {
+                var source = listLocator.Locate(result);
+                if (source != null)
+                {
+                    foundNodes.Add(source);
+                    foreach (var patch in HandleNodes(source, result, settingsScope))
+                    {
+                        yield return patch;
+                    }
+                }
+                else
+                {
+                    yield return new PatchElement { Operation = "Add", Path = result.Path };
+                }
+            }
+            if (isStrict)
+            {
+                // need to remove source nodes that weren't found here
+                foreach (var source in sourceList)
+                {
+                    if (foundNodes.Contains(source))
+                    {
+                        continue;
+                    }
+                    yield return new PatchElement { Operation = "Remove", Path = source.Path };
+                }
+            }
         }
 
         public static IEnumerable<IPatchElement> HandleNodes(IStructuredDataNode sourceNode, IStructuredDataNode resultNode, Stack<ComparisonSettings> settingsScope)

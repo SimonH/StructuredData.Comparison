@@ -24,6 +24,7 @@ namespace StructuredData.Comparison
             [ImportMany] IEnumerable<Lazy<IConvertPatchElements, IFileMimeType>> patchConverters)
         {
             _walkerFactories = walkerFactories;
+            _patchConverters = patchConverters;
         }
 
         public string Compare(string sourceData, string resultDeclarationData, string mimeType)
@@ -62,7 +63,7 @@ namespace StructuredData.Comparison
                 }
                 yield break;
             }
-            var scopeDepth = settingsScope.Count;
+            var initialScopeDepth = settingsScope.Count;
             try
             {
                 using(var resultEnumerator = resultWalker.GetEnumerator())
@@ -84,7 +85,7 @@ namespace StructuredData.Comparison
                             }
                             var sourceNode = tuple.Item1;
                             var resultNode = tuple.Item2;
-                            if(settingsScope.Count == scopeDepth && (!settingsScope.Peek().Inherit || resultNode.IsListNode()))
+                            if(settingsScope.Count == initialScopeDepth && (!settingsScope.Peek().Inherit || resultNode.IsListNode()))
                             {
                                 var lastInherited = settingsScope.LastInheritedSettings();
                                 settingsScope.Push(!settingsScope.Peek().Inherit
@@ -93,7 +94,8 @@ namespace StructuredData.Comparison
                                     {
                                         TreatAsList = true,
                                         Inherit = false,
-                                        ListOptions = lastInherited.ListOptions
+                                        ListOptions = lastInherited.ListOptions,
+                                        ListKey = lastInherited.ListKey
                                     });
                             }
                             IEnumerable<IPatchElement> commandPatches;
@@ -105,7 +107,8 @@ namespace StructuredData.Comparison
                                 }
                                 continue;
                             }
-                            var handleFunc = settingsScope.Peek().TreatAsList ? new Func<IStructuredDataNode, IStructuredDataNode, Stack<ComparisonSettings>, IEnumerable<IPatchElement>>(WalkProcesses.HandleLists) : WalkProcesses.HandleNodes;
+                            var currentSettings = settingsScope.Peek();
+                            var handleFunc = currentSettings.TreatAsList ? new Func<IStructuredDataNode, IStructuredDataNode, Stack<ComparisonSettings>, IEnumerable<IPatchElement>>(WalkProcesses.HandleLists) : WalkProcesses.HandleNodes;
                             foreach(var patch in handleFunc(sourceNode, resultNode, settingsScope))
                             {
                                 yield return patch;
@@ -116,7 +119,7 @@ namespace StructuredData.Comparison
             }
             finally
             {
-                if(settingsScope.Count > scopeDepth)
+                if(settingsScope.Count > initialScopeDepth)
                 {
                     settingsScope.Pop();
                 }

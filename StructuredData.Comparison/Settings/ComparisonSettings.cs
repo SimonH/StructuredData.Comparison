@@ -7,8 +7,9 @@
             Inherit = true;
         }
         public bool TreatAsList { get; set; }
-        public int ListOptions { get; set; }
+        public ListOptions ListOptions { get; set; }
         public bool Inherit { get; set; }
+        public string ListKey { get; set; }
 
         public ComparisonSettings Clone()
         {
