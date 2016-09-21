@@ -7,7 +7,7 @@ namespace StructuredData.Comparison
 {
     public static class StructuredDataComparison
     {
-        private static IManageStructuredDataComparison GetComparer()
+        private static IManageStructuredDataComparison GetComparisonManager()
         {
             return ContainerManager.CompositionContainer.GetExport<IManageStructuredDataComparison>()?.Value;
         }
@@ -24,7 +24,7 @@ namespace StructuredData.Comparison
 
         public static string FileComparison(this string sourceFilePath, string resultDeclarationFilePath)
         {
-            return GetComparer().Compare(sourceFilePath, resultDeclarationFilePath);
+            return GetComparisonManager().Compare(sourceFilePath, resultDeclarationFilePath);
         }
 
         public static bool IsEqualTo(this string sourceFilePath, string resultDeclarationFilePath)
@@ -34,7 +34,7 @@ namespace StructuredData.Comparison
 
         public static string ContentComparison(this string sourceData, string resultDeclarationData, string mimeType)
         {
-            return GetComparer().Compare(sourceData, resultDeclarationData, mimeType);
+            return GetComparisonManager().Compare(sourceData, resultDeclarationData, mimeType);
         }
 
         public static bool IsEqualTo(this string sourceData, string resultDeclarationData, string mimeType)

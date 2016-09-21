@@ -36,7 +36,7 @@ namespace StructuredData.Comparison.Tests
 
         private class MockExtensionExt : IFileExtension
         {
-            public string Extension => "ext";
+            public string Extension => ".ext";
         }
 
         private class MockMimeExt : IFileMimeType
@@ -46,7 +46,7 @@ namespace StructuredData.Comparison.Tests
 
         private class MockExtensionEnt : IFileExtension
         {
-            public string Extension => "ent";
+            public string Extension => ".ent";
         }
 
         private class MockMimeEnt : IFileMimeType
