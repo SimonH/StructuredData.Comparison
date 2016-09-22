@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using StructuredData.Comparison.Exceptions;
 using StructuredData.Comparison.Interfaces;
+using StructuredData.Comparison.ListHandling;
 using StructuredData.Comparison.Model;
 using StructuredData.Comparison.Processors;
 using StructuredData.Comparison.Settings;
@@ -73,14 +74,12 @@ namespace StructuredData.Comparison
 
         public static IEnumerable<IPatchElement> HandleLists(IStructuredDataNode sourceNode, IStructuredDataNode resultNode, Stack<ComparisonSettings> settingsScope)
         {
-            var isStrict = (settingsScope.Peek().ListOptions & ListOptions.Strict) == ListOptions.Strict;
-            var isOrdered = (settingsScope.Peek().ListOptions & ListOptions.Ordered) == ListOptions.Ordered;
-            var areValues = (settingsScope.Peek().ListOptions & ListOptions.OfValues) == ListOptions.OfValues;
+            var currentSettings = settingsScope.Peek();
             var resultList = resultNode.Children.Where(sdn => !string.Equals(sdn.Name, ProcessorDeclarations.Settings)).ToList();
             var sourceList = sourceNode.Children.ToList();
             if (resultList.Count == 0)
             {
-                if (sourceList.Count > 0 && isStrict)
+                if (sourceList.Count > 0 && currentSettings.ListOptions.IsStrict())
                 {
                     foreach (var node in sourceList)
                     {
@@ -89,14 +88,17 @@ namespace StructuredData.Comparison
                 }
                 yield break;
             }
-            var keyField = settingsScope.Peek().ListKey ?? resultList[0].Children?.FirstOrDefault()?.Name;
-            if (string.IsNullOrWhiteSpace(keyField))
+            string keyField = null;
+            if(!currentSettings.ListOptions.IsValueList())
             {
-                throw new DataComparisonException("Cannot handle an unordered list without a key field. Set ListKey in settings or the first child node is used");
+                keyField = settingsScope.Peek().ListKey ?? resultList[0].Children?.FirstOrDefault()?.Name;
+                if(string.IsNullOrWhiteSpace(keyField))
+                {
+                    throw new DataComparisonException("Cannot handle an unordered list without a key field. Set ListKey in settings or the first child node is used");
+                }
             }
             // we expect to find each result item and for them to be equal it's just where we find them in the source that's different
-            //IListLocator listLocator = new ListL
-            var listLocator = isOrdered ? (IListLocator)new OrderedListLocator(sourceList, keyField) : new UnOrderedListLocator(sourceList, keyField);
+            var listLocator = new ListLocatorFactory().CreateLocator(sourceList, currentSettings, keyField);
             List<IStructuredDataNode> foundNodes = new List<IStructuredDataNode>();
             foreach (var result in resultList)
             {
@@ -114,7 +116,7 @@ namespace StructuredData.Comparison
                     yield return new PatchElement { Operation = "Add", Path = result.Path };
                 }
             }
-            if (isStrict)
+            if (currentSettings.ListOptions.IsStrict())
             {
                 // need to remove source nodes that weren't found here
                 foreach (var source in sourceList)

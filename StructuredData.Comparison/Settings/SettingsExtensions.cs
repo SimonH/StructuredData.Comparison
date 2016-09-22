@@ -19,6 +19,26 @@ namespace StructuredData.Comparison.Settings
                 --index;
             }
             return new ComparisonSettings(); // shouldn't ever get here as the first element should always be inherited anyway
-        } 
+        }
+
+        private static bool IsListOptionSet(this ListOptions source, ListOptions value)
+        {
+            return (source & value) == value;
+        }
+
+        public static bool IsValueList(this ListOptions source)
+        {
+            return source.IsListOptionSet(ListOptions.OfValues);
+        }
+
+        public static bool IsOrdered(this ListOptions source)
+        {
+            return source.IsListOptionSet(ListOptions.Ordered);
+        }
+
+        public static bool IsStrict(this ListOptions source)
+        {
+            return source.IsListOptionSet(ListOptions.Strict);
+        }
     }
 }
