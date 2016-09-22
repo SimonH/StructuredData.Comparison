@@ -7,6 +7,7 @@ namespace StructuredData.Comparison.Settings
     {
         LooseUnOrdered = 0,
         Strict = 1,
-        Ordered = 2
+        Ordered = 2,
+        OfValues = 4
     }
 }

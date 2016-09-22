@@ -96,6 +96,10 @@ namespace StructuredData.Comparison.Processors
                 {
                     ret |= ListOptions.Ordered;
                 }
+                else if (string.Equals(part, "OfValues", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    ret |= ListOptions.OfValues;
+                }
             }
             return ret;
         } 

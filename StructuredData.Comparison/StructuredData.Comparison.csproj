@@ -51,6 +51,7 @@
     <Compile Include="Interfaces\IFileMimeType.cs" />
     <Compile Include="Interfaces\IFileSystem.cs" />
     <Compile Include="Interfaces\IListLocator.cs" />
+    <Compile Include="Interfaces\IListLocatorFactory.cs" />
     <Compile Include="Interfaces\IManageStructuredDataComparison.cs" />
     <Compile Include="Interfaces\IPatchElement.cs" />
     <Compile Include="Interfaces\IStructuredDataComparer.cs" />
@@ -58,9 +59,12 @@
     <Compile Include="Interfaces\IValueProcessorCommand.cs" />
     <Compile Include="Interfaces\IValueProcessorCommandName.cs" />
     <Compile Include="Interfaces\IValueProcessorCommandRunner.cs" />
+    <Compile Include="ListHandling\ListLocatorFactory.cs" />
+    <Compile Include="ListHandling\OrderedListOfValuesLocator.cs" />
+    <Compile Include="ListHandling\UnorderedListOfValuesLocator.cs" />
     <Compile Include="Model\PatchElement.cs" />
     <Compile Include="Model\StructuredDataNode.cs" />
-    <Compile Include="OrderedListLocator.cs" />
+    <Compile Include="ListHandling\OrderedListLocator.cs" />
     <Compile Include="Processors\IgnoreValueProcessorCommand.cs" />
     <Compile Include="Model\StructuredDataNodeExtensions.cs" />
     <Compile Include="Processors\ValueProcessorCommandRunner.cs" />
@@ -72,7 +76,7 @@
     <Compile Include="Settings\SettingsExtensions.cs" />
     <Compile Include="StructuredDataComparer.cs" />
     <Compile Include="StructuredDataComparison.cs" />
-    <Compile Include="UnOrderedListLocator.cs" />
+    <Compile Include="ListHandling\UnOrderedListLocator.cs" />
     <Compile Include="WalkProcesses.cs" />
     <Compile Include="Wrappers\FileSystemWrapper.cs" />
   </ItemGroup>

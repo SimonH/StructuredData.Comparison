@@ -75,6 +75,7 @@ namespace StructuredData.Comparison
         {
             var isStrict = (settingsScope.Peek().ListOptions & ListOptions.Strict) == ListOptions.Strict;
             var isOrdered = (settingsScope.Peek().ListOptions & ListOptions.Ordered) == ListOptions.Ordered;
+            var areValues = (settingsScope.Peek().ListOptions & ListOptions.OfValues) == ListOptions.OfValues;
             var resultList = resultNode.Children.Where(sdn => !string.Equals(sdn.Name, ProcessorDeclarations.Settings)).ToList();
             var sourceList = sourceNode.Children.ToList();
             if (resultList.Count == 0)
@@ -94,6 +95,7 @@ namespace StructuredData.Comparison
                 throw new DataComparisonException("Cannot handle an unordered list without a key field. Set ListKey in settings or the first child node is used");
             }
             // we expect to find each result item and for them to be equal it's just where we find them in the source that's different
+            //IListLocator listLocator = new ListL
             var listLocator = isOrdered ? (IListLocator)new OrderedListLocator(sourceList, keyField) : new UnOrderedListLocator(sourceList, keyField);
             List<IStructuredDataNode> foundNodes = new List<IStructuredDataNode>();
             foreach (var result in resultList)
