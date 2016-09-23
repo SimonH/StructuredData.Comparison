@@ -59,6 +59,8 @@
     <Compile Include="Interfaces\IValueProcessorCommand.cs" />
     <Compile Include="Interfaces\IValueProcessorCommandName.cs" />
     <Compile Include="Interfaces\IValueProcessorCommandRunner.cs" />
+    <Compile Include="ListHandling\KeyedListLocatorBase.cs" />
+    <Compile Include="ListHandling\ListLocatorBase.cs" />
     <Compile Include="ListHandling\ListLocatorFactory.cs" />
     <Compile Include="ListHandling\OrderedListOfValuesLocator.cs" />
     <Compile Include="ListHandling\UnorderedListOfValuesLocator.cs" />

@@ -8,17 +8,18 @@ namespace StructuredData.Comparison.ListHandling
     {
         public IListLocator CreateLocator(List<IStructuredDataNode> findList, ComparisonSettings currentSettings, string keyField)
         {
-            return currentSettings.ListOptions.IsValueList() ? GetValueLocator(findList, currentSettings.ListOptions.IsOrdered()) : GetObjectLocator(findList, currentSettings.ListOptions.IsOrdered(), keyField);
+            return currentSettings.ListOptions.IsValueList() ? GetValueLocator(findList, currentSettings) : GetObjectLocator(findList, currentSettings, keyField);
         }
 
-        private IListLocator GetObjectLocator(List<IStructuredDataNode> findList, bool isOrdered, string keyField)
+        private IListLocator GetObjectLocator(List<IStructuredDataNode> findList, ComparisonSettings currentSettings, string keyField)
         {
-            return isOrdered ? (IListLocator)new OrderedListLocator(findList, keyField) : new UnOrderedListLocator(findList, keyField);
+
+            return currentSettings.ListOptions.IsOrdered() ? (IListLocator)new OrderedListLocator(findList, keyField, currentSettings.StringComparison) : new UnOrderedListLocator(findList, keyField, currentSettings.StringComparison);
         }
 
-        private IListLocator GetValueLocator(List<IStructuredDataNode> findList, bool isOrdered)
+        private IListLocator GetValueLocator(List<IStructuredDataNode> findList, ComparisonSettings currentSettings)
         {
-            return isOrdered ? (IListLocator)new OrderedListOfValuesLocator(findList) : new UnorderedListOfValuesLocator(findList);
+            return currentSettings.ListOptions.IsOrdered() ? (IListLocator)new OrderedListOfValuesLocator(findList, currentSettings.StringComparison) : new UnorderedListOfValuesLocator(findList, currentSettings.StringComparison);
         }
     }
 }

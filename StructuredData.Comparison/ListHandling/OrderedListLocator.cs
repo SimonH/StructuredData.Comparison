@@ -3,37 +3,32 @@ using System.Collections.Generic;
 using System.Linq;
 using StructuredData.Comparison.Interfaces;
 
-namespace StructuredData.Comparison
+namespace StructuredData.Comparison.ListHandling
 {
-    internal class OrderedListLocator : IListLocator
+    internal class OrderedListLocator : KeyedListLocatorBase
     {
-        private readonly List<IStructuredDataNode> _findList;
-        private readonly string _keyField;
         private int _currentIndex;
-        public OrderedListLocator(List<IStructuredDataNode> findList, string keyField)
+        public OrderedListLocator(List<IStructuredDataNode> findList, string keyField, StringComparison comparison) : base(findList, keyField, comparison)
         {
-            _findList = findList;
-            _keyField = keyField;
         } 
-        public IStructuredDataNode Locate(IStructuredDataNode nodeToLocate)
+
+        protected override IStructuredDataNode LocateFromKey(string keyValue)
         {
-            if (_findList == null || _findList.Count == 0 || _currentIndex == _findList.Count)
+            if (_currentIndex == SourceList.Count)
             {
                 return null;
             }
-            var keyValue = nodeToLocate?.Children?.FirstOrDefault(sdn => string.Equals(sdn.Name, _keyField, StringComparison.InvariantCultureIgnoreCase))?.Value;
-            if (string.IsNullOrWhiteSpace(keyValue))
+            while (_currentIndex < SourceList.Count)
             {
-                return null;
-            }
-            while (_currentIndex < _findList.Count)
-            {
-                var node = _findList[_currentIndex];
-                ++_currentIndex;
-                if (node?.Children?.FirstOrDefault(sdn => string.Equals(sdn.Name, _keyField, StringComparison.InvariantCultureIgnoreCase) && string.Equals(sdn.Value, keyValue, StringComparison.InvariantCultureIgnoreCase)) != null)
+                var node = SourceList[_currentIndex++];
+                if (FoundItems.Contains(node) ||
+                    (node?.Children.FirstOrDefault(sdn => string.Equals(sdn.Name, KeyField, Comparison) && string.Equals(sdn.Value, keyValue, Comparison)) == null))
                 {
-                    return node;
+                    continue;
                 }
+
+                FoundItemList.Add(node);
+                return node;
             }
             return null;
         }

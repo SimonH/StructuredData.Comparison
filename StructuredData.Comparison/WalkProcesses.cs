@@ -156,12 +156,12 @@ namespace StructuredData.Comparison
                 yield return new PatchElement { Operation = "Remove", Path = sourceNode.Path };
                 yield break;
             }
-            if(!string.Equals(sourceNode.Name, resultNode.Name, StringComparison.InvariantCultureIgnoreCase))
+            if(!string.Equals(sourceNode.Name, resultNode.Name, settingsScope.Peek().StringComparison))
             {
                 yield return new PatchElement { Operation = "Remove", Path = sourceNode.Path, Value = sourceNode.Value };
                 yield return new PatchElement { Operation = "Add", Path = resultNode.Path, Value = resultNode.Value };
             }
-            else if(!string.Equals(sourceNode.Value, resultNode.Value))
+            else if(!string.Equals(sourceNode.Value, resultNode.Value, settingsScope.Peek().StringComparison))
             {
                 yield return new PatchElement { Operation = "Replace", Path = sourceNode.Path, Value = resultNode.Value };
             }

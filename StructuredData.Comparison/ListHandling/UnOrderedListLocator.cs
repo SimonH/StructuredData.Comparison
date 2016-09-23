@@ -3,31 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using StructuredData.Comparison.Interfaces;
 
-namespace StructuredData.Comparison
+namespace StructuredData.Comparison.ListHandling
 {
-    internal class UnOrderedListLocator : IListLocator
+    internal class UnOrderedListLocator : KeyedListLocatorBase
     {
-        private readonly List<IStructuredDataNode> _findList;
-        private readonly string _keyField;
-        public UnOrderedListLocator(List<IStructuredDataNode> findList, string keyField)
+        public UnOrderedListLocator(List<IStructuredDataNode> findList, string keyField, StringComparison comparison) : base(findList, keyField, comparison)
         {
-            _findList = findList;
-            _keyField = keyField;
         }
 
-        public IStructuredDataNode Locate(IStructuredDataNode nodeToLocate)
+        protected override IStructuredDataNode LocateFromKey(string keyValue)
         {
-            if (_findList == null || _findList.Count == 0)
+            var node = SourceList.FirstOrDefault(sdn => 
+                !FoundItemList.Contains(sdn) && sdn.Children?.FirstOrDefault(
+                    child => string.Equals(child.Name, KeyField, Comparison) && string.Equals(child.Value, keyValue, Comparison)) != null);
+            if (node != null)
             {
-                return null;
+                FoundItemList.Add(node);
             }
-            var keyValue = nodeToLocate?.Children?.FirstOrDefault(sdn => string.Equals(sdn.Name, _keyField, StringComparison.InvariantCultureIgnoreCase))?.Value;
-            if (string.IsNullOrWhiteSpace(keyValue))
-            {
-                return null;
-            }
-            return _findList.FirstOrDefault(
-                sdn => sdn.Children?.FirstOrDefault(child => string.Equals(child.Name, _keyField, StringComparison.InvariantCultureIgnoreCase) && string.Equals(child.Value, keyValue, StringComparison.InvariantCultureIgnoreCase)) != null);
+            return node;
         }
     }
 }

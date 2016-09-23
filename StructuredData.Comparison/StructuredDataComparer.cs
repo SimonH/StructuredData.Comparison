@@ -47,7 +47,7 @@ namespace StructuredData.Comparison
 
         private string CreatePatch(IEnumerable<IPatchElement> differences, string mimeType)
         {
-            var converter = _patchConverters?.FirstOrDefault(pc => string.Equals(pc.Metadata.MimeType, mimeType, StringComparison.InvariantCultureIgnoreCase))?.Value ?? new DefaultXmlSerializerPatchConverter();
+            var converter = _patchConverters?.FirstOrDefault(pc => string.Equals(pc.Metadata.MimeType, mimeType, StringComparison.OrdinalIgnoreCase))?.Value ?? new DefaultXmlSerializerPatchConverter();
             return converter.DescribePatch(differences);
         }
 
@@ -68,7 +68,6 @@ namespace StructuredData.Comparison
             {
                 using(var resultEnumerator = resultWalker.GetEnumerator())
                 {
-                    // we should also start by checking that neither enumerator is empty (i.e. no foreach on results but GetEnumerator() and MoveNext() on each and see if it's true
                     using(var sourceEnumerator = sourceWalker.GetEnumerator())
                     {
                         while(true)
@@ -85,7 +84,10 @@ namespace StructuredData.Comparison
                             }
                             var sourceNode = tuple.Item1;
                             var resultNode = tuple.Item2;
-                            if(settingsScope.Count == initialScopeDepth && (!settingsScope.Peek().Inherit || resultNode.IsListNode()))
+                            // if we didn't find some specific settings and both nodes have children 
+                            // then push some new settings if we believe we are a list or if our child objects shouldn't inherit
+                            // Nodes with just a value always use the current settings (unless they are a List Of Values)
+                            if(settingsScope.Count == initialScopeDepth && !sourceNode.IsValue && !resultNode.IsValue && (!settingsScope.Peek().Inherit || resultNode.IsListNode()))
                             {
                                 var lastInherited = settingsScope.LastInheritedSettings();
                                 settingsScope.Push(!settingsScope.Peek().Inherit

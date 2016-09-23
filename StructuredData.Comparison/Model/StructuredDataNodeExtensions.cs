@@ -61,7 +61,7 @@ namespace StructuredData.Comparison.Processors
             // By default inserted settings are not inherited, they are normally to describe list behaviour and do not refer to child nodes
             var ret = new ComparisonSettings
             {
-                Inherit = string.Equals(settingsChildren.FirstOrDefault(sdn => string.Equals(sdn.Name, "Inherit"))?.Value, "true", StringComparison.InvariantCultureIgnoreCase),
+                Inherit = string.Equals(settingsChildren.FirstOrDefault(sdn => string.Equals(sdn.Name, "Inherit"))?.Value, "true", StringComparison.OrdinalIgnoreCase),
                 ListOptions = GetListOptions(settingsChildren.FirstOrDefault(sdn => string.Equals(sdn.Name, "ListOptions"))),
                 ListKey = settingsChildren.FirstOrDefault(sdn => string.Equals(sdn.Name, "ListKey"))?.Value
             };
@@ -73,7 +73,12 @@ namespace StructuredData.Comparison.Processors
             var treatAsListChild = settingsChildren.FirstOrDefault(sdn => string.Equals(sdn.Name, "TreatAsList"));
             if (treatAsListChild != null)
             {
-                ret.TreatAsList = string.Equals(treatAsListChild.Value, "true", StringComparison.InvariantCultureIgnoreCase);
+                ret.TreatAsList = string.Equals(treatAsListChild.Value, "true", StringComparison.OrdinalIgnoreCase);
+            }
+            StringComparison newComparison;
+            if (Enum.TryParse(settingsChildren.FirstOrDefault(sdn => string.Equals(sdn.Name, "StringComparison"))?.Value, true, out newComparison))
+            {
+                ret.StringComparison = newComparison;
             }
             return ret;
         }
@@ -88,17 +93,10 @@ namespace StructuredData.Comparison.Processors
             var parts = node.Value.Split(',');
             foreach(var part in parts)
             {
-                if(string.Equals(part, "Strict", StringComparison.InvariantCultureIgnoreCase))
+                ListOptions listOption;
+                if (Enum.TryParse(part, true, out listOption))
                 {
-                    ret |= ListOptions.Strict;
-                }
-                else if(string.Equals(part, "Ordered", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    ret |= ListOptions.Ordered;
-                }
-                else if (string.Equals(part, "OfValues", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    ret |= ListOptions.OfValues;
+                    ret |= listOption;
                 }
             }
             return ret;

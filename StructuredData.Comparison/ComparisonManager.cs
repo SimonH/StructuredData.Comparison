@@ -36,7 +36,7 @@ namespace StructuredData.Comparison
                 throw new DataComparisonException("files must have an extension");
             }
 
-            var mimetype = _fileExtensionConversions.FirstOrDefault(fec => string.Equals(fec.Metadata.Extension, Path.GetExtension(filePath), StringComparison.InvariantCultureIgnoreCase))?.Value?.MimeType;
+            var mimetype = _fileExtensionConversions.FirstOrDefault(fec => string.Equals(fec.Metadata.Extension, Path.GetExtension(filePath), StringComparison.OrdinalIgnoreCase))?.Value?.MimeType;
             if(string.IsNullOrWhiteSpace(mimetype))
             {
                 throw new DataComparisonException($"could not retrieve mime type for file : {filePath}");
@@ -52,7 +52,7 @@ namespace StructuredData.Comparison
             }
             var sourceMimeType = GetMimeType(sourceFilePath);
             var resultMimeType = GetMimeType(resultDeclarationFilePath);
-            if(!string.Equals(sourceMimeType, resultMimeType, StringComparison.InvariantCultureIgnoreCase))
+            if(!string.Equals(sourceMimeType, resultMimeType, StringComparison.OrdinalIgnoreCase))
             {
                 throw new DataComparisonException("Cannot compare files of different mime types");
             }

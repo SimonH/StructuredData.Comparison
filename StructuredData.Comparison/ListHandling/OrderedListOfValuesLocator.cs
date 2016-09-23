@@ -1,32 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using StructuredData.Comparison.Interfaces;
 
 namespace StructuredData.Comparison.ListHandling
 {
-    internal class OrderedListOfValuesLocator : IListLocator
+    internal class OrderedListOfValuesLocator : ListLocatorBase
     {
-        private readonly List<IStructuredDataNode> _findList;
         private int _currentIndex;
-        public OrderedListOfValuesLocator(List<IStructuredDataNode> findList)
+        public OrderedListOfValuesLocator(List<IStructuredDataNode> findList, StringComparison comparison) : base(findList, comparison)
         {
-            _findList = findList;
         }
-        public IStructuredDataNode Locate(IStructuredDataNode nodeToLocate)
+
+        protected override IStructuredDataNode LocateInternal(IStructuredDataNode nodeToLocate)
         {
-            if(_findList == null || _findList.Count == 0 || _currentIndex == _findList.Count)
+            if (_currentIndex == SourceList.Count)
             {
                 return null;
             }
-            while(_currentIndex < _findList.Count)
+            while (_currentIndex < SourceList.Count)
             {
-                var node = _findList[_currentIndex];
-                ++_currentIndex;
-                if(string.Equals(node?.Value, nodeToLocate.Value, StringComparison.InvariantCultureIgnoreCase))
+                var node = SourceList[_currentIndex++];
+                if (FoundItemList.Contains(node) || !string.Equals(node?.Value, nodeToLocate.Value, Comparison))
                 {
-                    return node;
+                    continue;
                 }
+
+                FoundItemList.Add(node);
+                return node;
             }
             return null;
         }

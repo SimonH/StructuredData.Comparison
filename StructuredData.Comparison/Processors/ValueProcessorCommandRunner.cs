@@ -25,7 +25,7 @@ namespace StructuredData.Comparison.Processors
 
         public IEnumerable<IPatchElement> Run(string command, IStructuredDataNode sourceNode)
         {
-            var commandProcessor = _valueProcessorCommands?.FirstOrDefault(pc => string.Equals(pc.Metadata.Name, command, StringComparison.InvariantCultureIgnoreCase))?.Value;
+            var commandProcessor = _valueProcessorCommands?.FirstOrDefault(pc => string.Equals(pc.Metadata.Name, command, StringComparison.OrdinalIgnoreCase))?.Value;
             if (commandProcessor == null)
             {
                 throw new DataComparisonException($"No processor found for value processor : {command}");
