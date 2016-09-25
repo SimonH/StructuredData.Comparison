@@ -41,7 +41,7 @@ namespace StructuredData.Comparison.Processors
                 return false;
 
             var children = resultNode.Children.ToList();
-            return children.Count > 1 && children.All(sdn => string.Equals(sdn.Name, children[0].Name));
+            return children.Count > 1 && children.Where(sdn => !string.Equals(sdn.Name, ProcessorDeclarations.Settings, StringComparison.Ordinal)).All(sdn => string.Equals(sdn.Name, children[0].Name));
         }
 
         public static ComparisonSettings GetSettingsObject(this IStructuredDataNode resultNode)

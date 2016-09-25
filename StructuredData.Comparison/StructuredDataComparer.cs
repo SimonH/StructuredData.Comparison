@@ -87,18 +87,28 @@ namespace StructuredData.Comparison
                             // if we didn't find some specific settings and both nodes have children 
                             // then push some new settings if we believe we are a list or if our child objects shouldn't inherit
                             // Nodes with just a value always use the current settings (unless they are a List Of Values)
-                            if(settingsScope.Count == initialScopeDepth && !sourceNode.IsValue && !resultNode.IsValue && (!settingsScope.Peek().Inherit || resultNode.IsListNode()))
+                            if(settingsScope.Count == initialScopeDepth)
                             {
                                 var lastInherited = settingsScope.LastInheritedSettings();
-                                settingsScope.Push(!settingsScope.Peek().Inherit
-                                    ? lastInherited
-                                    : new ComparisonSettings
+                                // should we get rid of settings that we should not inherit?
+                                if(!settingsScope.Peek().Inherit)
+                                {
+                                    if(settingsScope.Peek().TreatAsList || (!sourceNode.IsValue && !resultNode.IsValue))
                                     {
-                                        TreatAsList = true,
-                                        Inherit = false,
-                                        ListOptions = lastInherited.ListOptions,
-                                        ListKey = lastInherited.ListKey
-                                    });
+                                        settingsScope.Push(lastInherited);
+                                    }
+                                }
+                                // does the current node look like a list
+                                if(!sourceNode.IsValue && !resultNode.IsValue && resultNode.IsListNode())
+                                {
+                                    settingsScope.Push(new ComparisonSettings
+                                        {
+                                            TreatAsList = true,
+                                            Inherit = false,
+                                            ListOptions = lastInherited.ListOptions,
+                                            ListKey = lastInherited.ListKey
+                                        });
+                                }
                             }
                             IEnumerable<IPatchElement> commandPatches;
                             if(resultNode.RunValueProcessorCommand(sourceNode, out commandPatches))
