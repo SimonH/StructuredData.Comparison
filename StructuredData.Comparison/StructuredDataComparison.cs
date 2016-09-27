@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using StructuredData.Comparison.Container;
+using StructuredData.Common.Container;
 using StructuredData.Comparison.Interfaces;
 
 namespace StructuredData.Comparison

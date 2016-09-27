@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using MimeTypes;
+using StructuredData.Common.interfaces;
 using StructuredData.Comparison.Exceptions;
 using StructuredData.Comparison.Interfaces;
-using StructuredData.Comparison.Wrappers;
 
 namespace StructuredData.Comparison
 {
@@ -13,35 +14,16 @@ namespace StructuredData.Comparison
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ComparisonManager : IManageStructuredDataComparison
     {
-        private readonly IEnumerable<Lazy<IFileMimeType, IFileExtension>> _fileExtensionConversions;
-
         private readonly IFileSystem _fileSystem;
 
         private readonly IStructuredDataComparer _comparisonTool;
 
         [ImportingConstructor]
         public  ComparisonManager(IFileSystem fileSystem, 
-            IStructuredDataComparer comparisonTool, 
-            [ImportMany] IEnumerable<Lazy<IFileMimeType, IFileExtension>> fileExtensionConversions)
+            IStructuredDataComparer comparisonTool)
         {
             _fileSystem = fileSystem;
             _comparisonTool = comparisonTool;
-            _fileExtensionConversions = fileExtensionConversions;
-        }
-
-        private string GetMimeType(string filePath)
-        {
-            if(!Path.HasExtension(filePath))
-            {
-                throw new DataComparisonException("files must have an extension");
-            }
-
-            var mimetype = _fileExtensionConversions.FirstOrDefault(fec => string.Equals(fec.Metadata.Extension, Path.GetExtension(filePath), StringComparison.OrdinalIgnoreCase))?.Value?.MimeType;
-            if(string.IsNullOrWhiteSpace(mimetype))
-            {
-                throw new DataComparisonException($"could not retrieve mime type for file : {filePath}");
-            }
-            return mimetype;
         }
 
         public string Compare(string sourceFilePath, string resultDeclarationFilePath)
@@ -50,8 +32,8 @@ namespace StructuredData.Comparison
             {
                 throw new DataComparisonException("Cannot perform comparison. File does not exist");
             }
-            var sourceMimeType = GetMimeType(sourceFilePath);
-            var resultMimeType = GetMimeType(resultDeclarationFilePath);
+            var sourceMimeType = MimeTypeMap.GetMimeType(Path.GetExtension(sourceFilePath));
+            var resultMimeType = MimeTypeMap.GetMimeType(Path.GetExtension(resultDeclarationFilePath));
             if(!string.Equals(sourceMimeType, resultMimeType, StringComparison.OrdinalIgnoreCase))
             {
                 throw new DataComparisonException("Cannot compare files of different mime types");

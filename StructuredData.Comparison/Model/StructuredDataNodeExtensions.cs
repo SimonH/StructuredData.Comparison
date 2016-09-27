@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using StructuredData.Comparison.Container;
+using StructuredData.Common.Container;
 using StructuredData.Comparison.Interfaces;
-using StructuredData.Comparison.Model;
 using StructuredData.Comparison.Settings;
 
-namespace StructuredData.Comparison.Processors
+namespace StructuredData.Comparison.Model
 {
     internal static class StructuredDataNodeExtensions
     {

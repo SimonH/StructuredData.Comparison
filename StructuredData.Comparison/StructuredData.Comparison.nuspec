@@ -2,7 +2,7 @@
 <package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <id>StructuredData.Comparison</id>
-    <version>0.8.0.0</version>
+    <version>0.9.0.0</version>
     <authors>Simon Hanlon</authors>
     <owners>Simon Hanlon</owners>
     <description>Extensible library for comparing structured transport data (e.g. xml / json)</description>
@@ -10,6 +10,10 @@
     <licenseUrl>http://www.opensource.org/licenses/mit-license.php</licenseUrl>
     <tags>structured transport data comparison</tags>
     <language>en-us</language>
+    <dependencies>
+      <dependency id="StructuredData.Common" version="0.9.0.0" />
+      <dependency id="MediaTypeMap" version="2.1.0" />
+    </dependencies>
   </metadata>
   <files>
     <file src="StructuredData.Comparison\bin\Release\StructuredData.Comparison.*" target="lib\net40" />

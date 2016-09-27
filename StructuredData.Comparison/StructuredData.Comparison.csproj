@@ -30,6 +30,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MimeTypeMap, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MediaTypeMap.2.1.0.0\lib\net40\MimeTypeMap.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="StructuredData.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\StructuredData.Common.0.9.0\lib\net40\StructuredData.Common.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
@@ -41,15 +49,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Container\MefComposer.cs" />
-    <Compile Include="Container\ContainerManager.cs" />
     <Compile Include="DefaultXmlSerializerPatchConverter.cs" />
     <Compile Include="Exceptions\DataComparisonException.cs" />
     <Compile Include="Interfaces\IConvertPatchElements.cs" />
     <Compile Include="Interfaces\ICreateStructuredDataWalkers.cs" />
-    <Compile Include="Interfaces\IFileExtension.cs" />
     <Compile Include="Interfaces\IFileMimeType.cs" />
-    <Compile Include="Interfaces\IFileSystem.cs" />
     <Compile Include="Interfaces\IListLocator.cs" />
     <Compile Include="Interfaces\IListLocatorFactory.cs" />
     <Compile Include="Interfaces\IManageStructuredDataComparison.cs" />
@@ -80,9 +84,9 @@
     <Compile Include="StructuredDataComparison.cs" />
     <Compile Include="ListHandling\UnOrderedListLocator.cs" />
     <Compile Include="WalkProcesses.cs" />
-    <Compile Include="Wrappers\FileSystemWrapper.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="StructuredData.Comparison.nuspec">
       <SubType>Designer</SubType>
     </None>

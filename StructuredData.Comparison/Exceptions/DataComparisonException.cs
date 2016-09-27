@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using StructuredData.Common.Exceptions;
 
 namespace StructuredData.Comparison.Exceptions
 {
     [Serializable]
-    public class DataComparisonException : Exception
+    public class DataComparisonException : StructuredDataException
     {
         public DataComparisonException()
         {

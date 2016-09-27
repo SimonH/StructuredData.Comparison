@@ -1,11 +1,8 @@
-﻿using System;
-using System.ComponentModel.Composition;
+﻿using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
-using System.Diagnostics;
 using System.IO;
-using Moq;
 using NUnit.Framework;
-using StructuredData.Comparison.Container;
+using StructuredData.Common.Container;
 using StructuredData.Comparison.Interfaces;
 
 namespace StructuredData.Comparison.Tests
