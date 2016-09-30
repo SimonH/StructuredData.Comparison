@@ -1,6 +1,8 @@
 # StructuredData.Comparison
 Extensible core library for comparing structured transport data (e.g. xml json).
 
+Available on [Nuget](https://www.nuget.org/packages/StructuredData.Comparison/)
+
 ##Usage
  StructuredData.Comparison is not used in isolation. 
  
