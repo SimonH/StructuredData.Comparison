@@ -18,13 +18,13 @@ When comparing text data _using ContentComparison you supply the mimeType
 
 The result data can contain embedded settings or inline value processors to directly influence the comparison
 
-{
-  "StructuredData.Comparison_Settings":{
-     "StringComparison":"Ordinal" - Allows Case and Culture Comparison based on the .Net StringComparison enum
-  }
-  "StaticProperty":"actual value",
-  "CurrentDateTime":"StructuredData.Comparison_Ignore" - tells the comparison to ignore this value which changes for different results
-}
+{  
+  "StructuredData.Comparison_Settings":{  
+     "StringComparison":"Ordinal" - Allows Case and Culture Comparison based on the .Net StringComparison enum  
+  }  
+  "StaticProperty":"actual value",  
+  "CurrentDateTime":"StructuredData.Comparison_Ignore" - tells the comparison to ignore this value which changes for different results  
+}  
  
 
 ##Extending the library
