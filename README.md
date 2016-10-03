@@ -15,7 +15,7 @@ Available on [Nuget](https://www.nuget.org/packages/StructuredData.Comparison/)
  * Tries _using MEF_ to locate an implemenation of ICreateStructuredDataWalkers for the mimeType in any loaded application library
  * Performs the comparison
  
-When comparing text data _using ContentComparison you supply the mimeType  
+When comparing text data using ContentComparison you should supply the appropriate MimeType. 
 [e.g. "SourceData".ContentComparison("ResultData", "application/json")]
 
 The result data can contain embedded settings or inline value processors to directly influence the comparison
